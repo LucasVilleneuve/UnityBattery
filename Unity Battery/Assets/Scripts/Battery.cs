@@ -6,13 +6,15 @@ using UnityEngine.UI;
 public class Battery : MonoBehaviour
 {
     public GameObject FrontBattery;
-    public Image    BatteryImage;
+    public Renderer BatteryGaugeRenderer;
     public Button   Button;
     public Animator LeftHinge;
     public Animator RightHinge;
 
     public Gradient gradient;
+    [Range(0, 100)]
     public float minAmmount = 1f;
+    [Range(0, 100)]
     public float startingAmmount = 20f;
     public float timeToFill = 0.03f; // Number of seconds it takes to fill 1%
     public List<ColorBlock> colors;
@@ -27,13 +29,13 @@ public class Battery : MonoBehaviour
 
     public void Fill(float ammount) 
     {
-        if (FrontBattery.transform.localScale.y < 1.0) // If battery is not full
+        if (FrontBattery.transform.localScale.z < 1.0) // If battery is not full
         {
             // Add ammount to the battery
-            StartCoroutine(SetScaleOverTime(FrontBattery.transform.localScale.y * 100.0f + ammount));
+            StartCoroutine(SetScaleOverTime(FrontBattery.transform.localScale.z * 100.0f + ammount));
         }
 
-        if (FrontBattery.transform.localScale.y >= 1.0) // If battery is full
+        if (FrontBattery.transform.localScale.z >= 1.0) // If battery is full
         {
             // TODO Play animation
             Empty();
@@ -50,25 +52,25 @@ public class Battery : MonoBehaviour
     void SetColor (float value)  // float between 0-1
     {
         Color colorValue = gradient.Evaluate(value);
-        BatteryImage.color = colorValue;
+        BatteryGaugeRenderer.material.color = colorValue;
     }
 
     void SetColor()
     {
-        SetColor(FrontBattery.transform.localScale.y);
+        SetColor(FrontBattery.transform.localScale.z);
     }
 
-    void SetScale(float newYScale) // float between 0-100
+    void SetScale(float newZScale) // float between 0-100
     {
         Vector3 scale = FrontBattery.transform.localScale;
-        FrontBattery.transform.localScale = new Vector3(scale.x, newYScale / 100.0f, scale.y);
+        FrontBattery.transform.localScale = new Vector3(scale.x, scale.y, newZScale / 100.0f);
     }
 
-    IEnumerator SetScaleOverTime(float newYScale, bool changeColor = false) // float between 0-100
+    IEnumerator SetScaleOverTime(float newZScale, bool changeColor = false) // float between 0-100
     {
         Vector3 scale = FrontBattery.transform.localScale;
         float t = 0;
-        float timeToFillScale = timeToFill * (Mathf.Abs(newYScale - scale.y * 100.0f)); // Get time to fill for this specific scale
+        float timeToFillScale = timeToFill * (Mathf.Abs(newZScale - scale.z * 100.0f)); // Get time to fill for this specific scale
 
         // Disabling button when filling
         Button.interactable = false;
@@ -77,13 +79,13 @@ public class Battery : MonoBehaviour
         {
             // Lerping scale
             t += Time.deltaTime / timeToFillScale;
-            FrontBattery.transform.localScale = Vector3.Lerp(scale, new Vector3(scale.x, newYScale / 100.0f, scale.z), t);
+            FrontBattery.transform.localScale = Vector3.Lerp(scale, new Vector3(scale.x, scale.y, newZScale / 100.0f), t);
             SetColor();
 
             yield return new WaitForEndOfFrame();
         }
 
-        SetScale(newYScale);
+        SetScale(newZScale);
         SetColor();
 
         // Reenabling button
